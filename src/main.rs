@@ -9,7 +9,7 @@ use reqwest::header::{AUTHORIZATION, HeaderMap};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use std::time::{Duration, Instant};
-use tower_http::cors::{CorsLayer, AllowOrigin};
+use tower_http::cors::{CorsLayer, Any};
 
 const API_URL: &str = "https://plausible.canine.tools/api/stats/artistgrid.cx/custom-prop-values/name/?period=all&date=2025-11-07&filters=%5B%5B%22is%22%2C%22event%3Agoal%22%2C%5B%22Artist%20Click%22%5D%5D%5D&with_imported=true&detailed=true&order_by=%5B%5B%22visitors%22%2C%22desc%22%5D%5D&limit=100&page=1";
 const CACHE_DURATION: Duration = Duration::from_secs(600);
@@ -50,18 +50,9 @@ async fn main() {
     };
 
     let cors = CorsLayer::new()
-        .allow_origin(AllowOrigin::predicate(
-            |origin: &axum::http::HeaderValue, _: &axum::http::request::Parts| {
-                origin
-                    .to_str()
-                    .ok()
-                    .and_then(|s| s.strip_prefix("http://").or_else(|| s.strip_prefix("https://")))
-                    .map(|domain| domain.ends_with(".monochrome.tf") || domain == "monochrome.tf")
-                    .unwrap_or(false)
-            },
-        ))
-        .allow_methods([axum::http::Method::GET])
-        .allow_headers([axum::http::header::CONTENT_TYPE]);
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any);
 
     let app = Router::new()
         .route("/", get(handler))
